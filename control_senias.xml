@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <record id="view_control_senias_tree" model="ir.ui.view">
+            <field name="name">control.senias.tree</field>
+            <field name="model">control.senias</field>
+            <field name="arch" type="xml">
+                <tree string="listas">
+                    <field name="name" />
+                    <field name="user_id" />
+                    <field name="partner_id" />
+                    <field name="state" />
+                    <field name="validity" />
+                    <field name="section_id" />
+
+                </tree>
+            </field>
+        </record>
+
+        <!--   Product Price List -->
+        <record id="view_control_senias" model="ir.ui.view">
+            <field name="name">Control de seniass</field>
+            <field name="model">control.senias</field>
+            <field name="arch" type="xml">
+                <form string="Senias">
+                    <header>
+                        <button name="active" string="Realizar" type="object" class="oe_highlight"  />
+                        <button name="cancel" string="Cancelar" type="object" class="oe_link"  />
+                        <field name="state" widget="statusbar" />
+                    </header>
+
+                    <group >
+                        <field name="name" />
+                        <field name="user_id" />
+                        <field name="partner_id" />
+                        <field name="section_id" />
+                        <field name="amount" />
+                        <field name="validity" />
+                    </group>
+                    <group string="Items">
+                        <field name="control_senias_items_ids" >
+                            <tree editable="bottom" colors="green:state=='active',red:state=='cancel'">
+
+
+                                <field name="products_product_id"/>
+                                <field name="reserved_qty"/>
+                                <field name="stock_qty"/>
+                                <field name="warehouse_id"/>
+                                <field name="supplier_id"/>
+                                <field name="validity" />
+                                <field name="state" />
+
+
+                            </tree>
+                        </field>
+
+                    </group>
+                <div class="oe_chatter">
+                        <field name="message_follower_ids" widget="mail_followers"/>
+                        <field name="message_ids" widget="mail_thread" options="{&quot;thread_level&quot;: 1}"/>
+                </div>
+                </form>
+            </field>
+        </record>
+
+        <record id="control_senias_view_search" model="ir.ui.view">
+            <field name="name">control.senias.search</field>
+            <field name="model">control.senias</field>
+            <field name="priority" eval="8" />
+            <field name="arch" type="xml">
+                <search string="senas">
+                    <field name="name"/>
+                    <field name="user_id"/>
+                    <field name="partner_id"/>
+                    <field name="amount"/>
+                    <field name="validity"/>
+                    <filter string="Borrador" domain="[('state','=','draft')]" context="{}" />
+                    <filter string="Activos" domain="[('state','=','active')]" context="{}" />
+                    <filter string="General Paz" domain="[('control_senias_items_ids.warehouse_id','ilike','%paz%')]" context="{}" />
+
+                    <newline />
+                    <group expand="0" string="Group By...">
+                        <filter string="state" domain="[]" context="{'group_by':'state'}" />
+                    </group>
+                </search>
+            </field>
+        </record>
+        <record id="control_senias" model="ir.actions.act_window">
+            <field name="name">Control de señas</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">control.senias</field>
+            <field name="view_type">form</field>
+            <field name="view_id" ref="view_control_senias_tree" />
+        </record>
+
+        <menuitem id="menu_mkt_price_list" name="Señas" parent="base.menu_sales" sequence="55"/>
+
+        <menuitem action="control_senias" id="action_control_senias" parent="menu_mkt_price_list" sequence="30" />
+
+            <record id="view_control_senias_items_tree" model="ir.ui.view">
+            <field name="name">control.senias.items.tree</field>
+            <field name="model">control.senias.items</field>
+            <field name="arch" type="xml">
+                <tree string="listas">
+                    <field name="control_senias_id"/>
+                    <field name="validity"/>
+                    <field name="products_product_id"/>
+                    <field name="reserved_qty"/>
+                    <field name="warehouse_id"/>
+                    <field name="state"/>
+                </tree>
+            </field>
+        </record>
+     
+
+        <record id="control_senias_items_view_search" model="ir.ui.view">
+            <field name="name">control.senias.items.search</field>
+            <field name="model">control.senias.items</field>
+            <field name="priority" eval="8" />
+            <field name="arch" type="xml">
+                <search string="senas">
+            <field name="control_senias_id"/>
+                    <field name="state"/>
+                    <field name="validity"/>
+                    <field name="products_product_id"/>
+                    <field name="reserved_qty"/>
+                    <field name="warehouse_id"/>
+                    <filter string="Borrador" domain="[('state','=','draft')]" context="{}" />
+                    <filter string="Activos" name="active_state" domain="[('state','=','active')]" context="{}" />
+                    <newline />
+                    <group expand="0" string="Group By...">
+                        <filter string="proveedor" name="group_by_supplier_id" domain="[]" context="{'group_by':'supplier_id'}" />
+
+                        <filter string="estado" domain="[]" context="{'group_by':'state'}" />
+                        <filter string="Deposito" domain="[]" context="{'group_by':'warehouse_id'}" />
+                        <filter string="producto" name="group_by_products_product_id" domain="[]" context="{'group_by':'products_product_id'}" />
+                    </group>
+                </search>
+            </field>
+        </record>
+
+           <record id="control_senias_items" model="ir.actions.act_window">
+            <field name="name">Productos señados</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">control.senias.items</field>
+            <field name="view_type">form</field>
+            <field name="context">{'search_default_group_by_products_product_id':1,'search_default_active_state':1}</field>
+
+
+            <field name="view_id" ref="view_control_senias_items_tree" />
+        </record>
+
+        <menuitem action="control_senias_items" id="action_control_senias_items" parent="menu_mkt_price_list" sequence="35" />
+
+
+      <record id="cancel_old_senias" model="ir.cron">
+            <field name="name">cancel old senias</field>
+            <field name="user_id">1</field>
+            <field name="model">control.senias.items</field>
+            <field name="active">1</field>
+            <field name="user_id">1</field>
+            <field name="priority">5</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="numbercall">-1</field>
+            <field name="doall">False</field>
+            <field name="function">cancel_old_senias</field>
+        </record>
+
+
+<report
+    id="items_seniados_label"
+    model="control.senias"
+    string="Hojas de señados"
+    report_type="qweb-pdf"
+    name="ba_senias.report_hojas_seniados"
+/>
+
+
+
+
+
+
+
+        <template id="report_hojas_seniados">
+            <t t-call="report.html_container">
+                    <t t-foreach="docs" t-as="o">
+                        <t t-foreach="o.control_senias_items_ids" t-as="l">
+                            <t t-foreach="range(int(l.reserved_qty))" t-as="hoja">
+                            <t t-if="l.state =='active'" >
+                        <div class="page" style="border:3px solid #333;text-align:center;font-size:2em;">
+
+                                <h1 t-field="o.name"/>
+<br/><br/><br/>
+                                <h1>[<span t-field="l.products_product_id.default_code" />] <span t-field="l.products_product_id.name" /></h1>
+                                <h2>Cantidad <span t-esc="hoja_index + 1"/>/<span t-esc="'%.0f'%l.reserved_qty" /></h2>
+                                <h2>Fecha de validez <span t-field="o.validity" /></h2>
+<br/><br/><br/><br/><br/>
+                                <div class="col-xs-6"><strong>Vendedor</strong> <span t-field="o.user_id" /></div>
+                                <div class="col-xs-6"><strong>Cliente</strong> <span t-field="o.partner_id" /></div>
+                                <div class="col-xs-6"><strong>Estado</strong> <span t-field="l.state" /></div>
+                                <div class="col-xs-6"><strong>Equipo que reservo</strong> <span t-field="o.section_id" /></div>
+                                <div class="col-xs-6"><strong>Proveedor</strong> <span t-field="l.supplier_id" /></div>
+                                <div class="col-xs-6"><strong>Deposito</strong> <span t-field="l.warehouse_id" /></div>
+<br/><br/><br/>
+
+                            <div > Impreso: <span t-esc="time.strftime('%d-%m-%Y')" /></div>
+
+                        </div>
+                        </t>
+                        </t>
+                        </t>
+
+
+                    </t>
+            </t>
+        </template>
+
+
+    </data>
+</openerp>
+        
