@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+    # -*- coding: utf-8 -*-
 ##############################################################################
 #
 #    OpenERP, Open Source Management Solution
@@ -25,6 +25,7 @@ from dateutil import parser
 from openerp import models, fields, api ,  SUPERUSER_ID
 from openerp import tools
 
+from openerp.exceptions import except_orm, Warning, RedirectWarning
 
 from openerp.tools.translate import _
 import re
@@ -35,7 +36,7 @@ from lxml import etree
 
 _logger = logging.getLogger(__name__)
 
-
+SENIAS_STATES = [('draft','Borrador'),('logistica','Evaluacion logistica'),('cancel','Cancelado'),('active','Valida'),('partial','Parcial'),('end','Finalizada')]
 
 class control_senias(models.Model):
 
@@ -44,28 +45,20 @@ class control_senias(models.Model):
 
     _inherit = ['mail.thread']
 
-    @api.one
-    def _create_senia_sequence(self):
-     self.check_sequence_id = self.env['ir.sequence'].sudo().create({
-         'name': self.name ,
-         'implementation': 'no_gap',
-         'padding': 5,
-         'number_increment': 1,
-         'company_id': self.company_id.id,
-     })
+    _order = "id DESC"
 
     name = fields.Char('Numero', default='/')
-    user_id = fields.Many2one('res.users',string='usuario')
-    partner_id = fields.Many2one('res.partner',string='cliente')
-    amount = fields.Float(string='Monto')
+    user_id = fields.Many2one('res.users',string='usuario',write=['ba_conf.blancoamor_logistic'])
+    partner_id = fields.Many2one('res.partner',string='cliente',write=['ba_conf.blancoamor_logistic'])
+    amount = fields.Float(string='Monto',write=['ba_conf.blancoamor_logistic'])
 
-    section_id = fields.Many2one('crm.case.section',string='Equipo')
+    section_id = fields.Many2one('crm.case.section',string='Equipo',write=['ba_conf.blancoamor_logistic'])
 
-    validity = fields.Date('Validez',track_visibility='onchange')
+    validity = fields.Date('Validez',track_visibility='onchange',write=['ba_conf.blancoamor_logistic'])
 
     control_senias_items_ids = fields.One2many('control.senias.items','control_senias_id',string='items')
-    state = fields.Selection([('draft','Borrador'),('cancel','Cancelado'),('active','Valida'),('partial','Parcial'),('end','Finalizada')],compute="_compute_control_senias_state",default='draft' )
-
+    state = fields.Selection(SENIAS_STATES,default='draft' ,write=['ba_conf.blancoamor_logistic'])
+    #compute="_compute_control_senias_state",
     '''
     @api.model
     def create(self, vals):
@@ -80,6 +73,7 @@ class control_senias(models.Model):
     def _compute_control_senias_state(self):
         for  control in self:
             states = set([x.state for x in control.control_senias_items_ids])
+
             if len(states) == 1 :
                 control.state=list(states)[0]
             else :
@@ -89,11 +83,20 @@ class control_senias(models.Model):
     @api.model
     def create(self,vals) :
 
-        vals['message_follower_ids'] = []
+        if vals.get('name', '/') == '/':
+            vals['name'] = self.env['ir.sequence'].next_by_code('control.senias') or '/'
 
+
+
+        vals['message_follower_ids'] = []
+        user_id = self.env['res.users'].browse(vals['user_id'])
+        vals['message_follower_ids'].append(user_id.partner_id.id)
+
+        """
         blancoamor_logistic = self.env['ir.model.data'].get_object('ba_conf', 'blancoamor_logistic')
         for user in blancoamor_logistic.users :
             vals['message_follower_ids'].append(user.partner_id.id)
+        """
 
         rec = super(control_senias, self).create(vals)   
         return rec        
@@ -164,7 +167,7 @@ class control_senias_items(models.Model):
     '''
 
     control_senias_id= fields.Many2one('control.senias' , ondelete="cascade" )
-    state = fields.Selection([('draft','Borrador'),('cancel','Cancelado'),('active','Valida'),('end','Finalizada')],default='draft')
+    state = fields.Selection(SENIAS_STATES,default='draft')
     validity = fields.Date('Validez',related='control_senias_id.validity' )
 
     products_product_id= fields.Many2one('product.product')
@@ -188,4 +191,22 @@ class control_senias_items(models.Model):
         ids=self.search(args)
         ids.write({'state':'end'})
 
+    @api.one
+    def send2Logistica(self):
 
+        if self.state != 'draft':
+          raise Warning('Solo las lineas en borrador pueden ser enviadas a logistica')
+
+        self.warehouse_id = 3
+        self.state='logistica'
+
+        vals = {}
+        vals['message_follower_ids'] = []
+
+        blancoamor_logistic = self.env['ir.model.data'].get_object('ba_conf', 'blancoamor_logistic')
+        for user in blancoamor_logistic.users :
+            vals['message_follower_ids'].append(user.partner_id.id)
+
+        vals['state']='logistica'
+        _logger.info(vals)
+        self.control_senias_id.write(vals)

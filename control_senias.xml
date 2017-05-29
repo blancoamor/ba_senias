@@ -1,11 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
+
+    <data noupdate="1">
+        <!-- Sequences for sale.order -->
+
+
+        <record id="seq_type_control_senias" model="ir.sequence.type">
+            <field name="name">Control señas</field>
+            <field name="code">control.senias</field>
+        </record>
+        <record id="seq_control_senias" model="ir.sequence">
+            <field name="name">Control señas</field>
+            <field name="code">control.senias</field>
+            <field name="prefix">S</field>
+            <field name="padding">8</field>
+            <field eval="False" name="company_id"/>
+        </record>
+    </data>
+
+
     <data>
         <record id="view_control_senias_tree" model="ir.ui.view">
             <field name="name">control.senias.tree</field>
             <field name="model">control.senias</field>
             <field name="arch" type="xml">
-                <tree string="listas">
+                <tree string="listas" colors="green:state=='active';red:state=='cancel';orange:state=='logistica'">
                     <field name="name" />
                     <field name="user_id" />
                     <field name="partner_id" />
@@ -24,7 +43,7 @@
             <field name="arch" type="xml">
                 <form string="Senias">
                     <header>
-                        <button name="active" string="Realizar" type="object" class="oe_highlight"  />
+                        <button name="active" string="Confirmar mi deposito" type="object" class="oe_highlight"  />
                         <button name="cancel" string="Cancelar" type="object" class="oe_link"  />
                         <field name="state" widget="statusbar" />
                     </header>
@@ -38,18 +57,20 @@
                         <field name="validity" />
                     </group>
                     <group string="Items">
+
                         <field name="control_senias_items_ids" >
-                            <tree editable="bottom" colors="green:state=='active',red:state=='cancel'">
+                            <tree editable="bottom" colors="green:state=='active';red:state=='cancel';orange:state=='logistica'">
 
 
-                                <field name="products_product_id"/>
-                                <field name="reserved_qty"/>
-                                <field name="stock_qty"/>
-                                <field name="warehouse_id"/>
-                                <field name="supplier_id"/>
-                                <field name="validity" />
-                                <field name="state" />
-
+                                <field name="products_product_id" readonly="1"/>
+                                <field name="reserved_qty" readonly="1"/>
+                                <field name="stock_qty" readonly="1"/>
+                                <field name="warehouse_id" readonly="0"/>
+                                <field name="supplier_id" readonly="1"/>
+                                <field name="validity" readonly="1"/>
+                                <field name="state" readonly="1"/>
+                                
+                                <button name="send2Logistica"  string="Req Logistica" type="object" class="oe_highlight"  />
 
                             </tree>
                         </field>
@@ -124,7 +145,7 @@
                     <field name="validity"/>
                     <field name="products_product_id"/>
                     <field name="reserved_qty"/>
-                    <field name="warehouse_id"/>
+                    <field name="warehouse_id" />
                     <filter string="Borrador" domain="[('state','=','draft')]" context="{}" />
                     <filter string="Activos" name="active_state" domain="[('state','=','active')]" context="{}" />
                     <newline />
@@ -149,6 +170,8 @@
 
             <field name="view_id" ref="view_control_senias_items_tree" />
         </record>
+
+        
 
         <menuitem action="control_senias_items" id="action_control_senias_items" parent="menu_mkt_price_list" sequence="35" />
 

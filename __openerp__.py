@@ -32,7 +32,7 @@ una cantidad x de dias
     """,
     'author': 'Hormiga G',
     'website': 'http://www.hormigag.com.ar',
-    'depends': ['base','mail'],
+    'depends': ['base','mail','sale_stock_availability'],
     'installable': True,
     'data': ['control_senias.xml'],
     'images':[],    
