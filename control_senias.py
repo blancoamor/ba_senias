@@ -109,9 +109,9 @@ class control_senias(models.Model):
         ids.write({'state':'end'})
 
 
-    @api.one
+    @api.model
     def end(self,ids):
-        senia = self.browse(ids)
+        senia = self.env['control.senias'].browse(ids)
         senia.state='end'
         for item in senia.control_senias_items_ids:
             item.write({'state':'end'})
