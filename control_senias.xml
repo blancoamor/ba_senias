@@ -68,7 +68,7 @@
                                 <field name="warehouse_id" readonly="0"/>
                                 <field name="supplier_id" readonly="1"/>
                                 <field name="validity" readonly="1"/>
-                                <field name="state" readonly="1"/>
+                                <field name="state" readonly="  "/>
                                 
                                 <button name="send2Logistica"  string="Req Logistica" type="object" class="oe_highlight"  />
 

@@ -109,6 +109,14 @@ class control_senias(models.Model):
         ids.write({'state':'end'})
 
 
+    @api.one
+    def end(self,ids):
+        senia = self.browse(ids)
+        senia.state='end'
+        for item in senia.control_senias_items_ids:
+            item.write({'state':'end'})
+        return ids
+
 
     @api.one
     def cancel(self):
